@@ -1,0 +1,50 @@
+<?php
+
+namespace luya\admin\ngrest\render;
+
+use Yii;
+use luya\admin\ngrest\base\Render;
+
+/**
+ * @author Basil Suter <basil@nadar.io>
+ */
+class RenderActiveWindow extends Render implements RenderInterface
+{
+    private $_itemId = null;
+
+    public $activeWindowHash = null;
+    
+    public function render()
+    {
+        if (($activeWindow = $this->findActiveWindow($this->activeWindowHash)) !== false) {
+            /** @var $object \luya\admin\ngrest\base\ActiveWindow */
+            $object = Yii::createObject($activeWindow['objectConfig']);
+            $object->setItemId($this->_itemId);
+            $object->setConfigHash($this->config->getHash());
+            $object->setActiveWindowHash($this->activeWindowHash);
+            Yii::$app->session->set($this->activeWindowHash, $this->_itemId);
+            return $object->index();
+        }
+    }
+
+    public function setActiveWindowHash($activeWindowHash)
+    {
+        $this->activeWindowHash = $activeWindowHash;
+    }
+
+    public function setItemId($id)
+    {
+        $this->_itemId = (int) $id;
+    }
+
+    public function findActiveWindow($activeWindowHash)
+    {
+        $activeWindows = $this->config->getPointer('aw');
+        
+        if (isset($activeWindows[$activeWindowHash])) {
+            return $activeWindows[$activeWindowHash];
+        }
+
+        return false;
+    }
+}
